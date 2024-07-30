@@ -77,25 +77,20 @@ def test_reader_bad_json(rfile, reader):
 
 
 def test_writer(wfile, writer):
-    writer.write({
+    data = {
         'id': 'hello',
         'method': 'method',
         'params': {}
-    })
-    if 'ujson' in sys.modules:
-        assert wfile.getvalue() == (
-            b'Content-Length: 44\r\n'
-            b'Content-Type: application/vscode-jsonrpc; charset=utf8\r\n'
-            b'\r\n'
-            b'{"id":"hello","method":"method","params":{}}'
-        )
-    else:
-        assert wfile.getvalue() == (
-            b'Content-Length: 49\r\n'
-            b'Content-Type: application/vscode-jsonrpc; charset=utf8\r\n'
-            b'\r\n'
-            b'{"id": "hello", "method": "method", "params": {}}'
-        )
+    }
+    writer.write(data)
+
+    raw_result = wfile.getvalue().decode()
+    raw_result_lines = raw_result.split()
+
+    assert raw_result_lines[0].split(":") == "Content-Length"
+    assert raw_result_lines[1] == 'Content-Type: application/vscode-jsonrpc; charset=utf8'
+    assert raw_result_lines[2] == ''
+    assert json.loads(raw_result_lines[3]) == data
 
 
 class JsonDatetime(datetime.datetime):
