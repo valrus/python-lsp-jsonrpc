@@ -8,6 +8,7 @@ import datetime
 import sys
 from unittest import mock
 import pytest
+import json
 
 from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 
@@ -30,7 +31,6 @@ def reader(rfile):
 @pytest.fixture()
 def writer(wfile):
     return JsonRpcStreamWriter(wfile, sort_keys=True)
-
 
 def test_reader(rfile, reader):
     rfile.write(
@@ -84,13 +84,41 @@ def test_writer(wfile, writer):
     }
     writer.write(data)
 
-    raw_result = wfile.getvalue().decode()
-    raw_result_lines = raw_result.split()
+    assert wfile.getvalue() == (
+        b'Content-Length: 44\r\n'
+        b'Content-Type: application/vscode-jsonrpc; charset=utf8\r\n'
+        b'\r\n'
+        b'{"id":"hello","method":"method","params":{}}'
+    )
 
-    assert raw_result_lines[0].split(":") == "Content-Length"
-    assert raw_result_lines[1] == 'Content-Type: application/vscode-jsonrpc; charset=utf8'
-    assert raw_result_lines[2] == ''
-    assert json.loads(raw_result_lines[3]) == data
+
+def test_writer_builtin_json(wfile):
+    """Test the stream writer using the standard json lib."""
+    data = {
+        'id': 'hello',
+        'method': 'method',
+        'params': {}
+    }
+    orig_modules = sys.modules
+    try:
+        # Pretend orjson wasn't imported when initializing the writer.
+        sys.modules = {'json': json}
+        std_json_writer = JsonRpcStreamWriter(wfile, sort_keys=True)
+    finally:
+        sys.modules = orig_modules
+
+    with mock.patch('pylsp_jsonrpc.streams.json') as streams_json:
+        # Mock the imported json's dumps function to use the stdlib's dumps,
+        # whether orjson is available or not.
+        streams_json.dumps = json.dumps
+        std_json_writer.write(data)
+
+    assert wfile.getvalue() == (
+        b'Content-Length: 44\r\n'
+        b'Content-Type: application/vscode-jsonrpc; charset=utf8\r\n'
+        b'\r\n'
+        b'{"id":"hello","method":"method","params":{}}'
+    )
 
 
 class JsonDatetime(datetime.datetime):
