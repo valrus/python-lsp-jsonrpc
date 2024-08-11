@@ -92,7 +92,7 @@ def test_writer(wfile, writer):
     )
 
 
-def test_writer_builtin_json(wfile):
+def test_writer_stdlib_json(wfile):
     """Test the stream writer using the standard json lib."""
     data = {
         'id': 'hello',
