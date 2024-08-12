@@ -7,8 +7,8 @@ from io import BytesIO
 import datetime
 import sys
 from unittest import mock
-import pytest
 import json
+import pytest
 
 from pylsp_jsonrpc.streams import JsonRpcStreamReader, JsonRpcStreamWriter
 
