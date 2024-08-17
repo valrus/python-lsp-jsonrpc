@@ -32,6 +32,7 @@ def reader(rfile):
 def writer(wfile):
     return JsonRpcStreamWriter(wfile, sort_keys=True)
 
+
 def test_reader(rfile, reader):
     rfile.write(
         b'Content-Length: 49\r\n'

@@ -88,7 +88,7 @@ class JsonRpcStreamWriter:
         if 'orjson' in sys.modules and json_dumps_args.pop('sort_keys'):
             # orjson needs different option handling;
             # pylint has an erroneous error here https://github.com/pylint-dev/pylint/issues/9762
-            self._json_dumps_args = {'option': json.OPT_SORT_KEYS} # pylint: disable=maybe-no-member
+            self._json_dumps_args = {'option': json.OPT_SORT_KEYS}  # pylint: disable=maybe-no-member
             self._json_dumps_args.update(**json_dumps_args)
         else:
             self._json_dumps_args = json_dumps_args
